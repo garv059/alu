@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Project List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Background gradient */
+        body {
+            background: linear-gradient(135deg, #7B61FF, #C048C4); 
+        }
+    </style>
+    <script>
+        // Function to load and display projects
+        window.onload = function () {
+            displayProjects();
+        }
+
+        function displayProjects() {
+            const projectsContainer = document.getElementById('projects-list');
+            const projects = JSON.parse(localStorage.getItem('projects')) || [];
+            
+            if (projects.length === 0) {
+                projectsContainer.innerHTML = '<p class="text-center text-gray-700 text-lg">No projects saved yet.</p>';
+            } else {
+                projectsContainer.innerHTML = ''; // Clear previous content
+                projects.forEach((project, index) => {
+                    const projectCard = `
+                        <div class="bg-white rounded-lg p-4 shadow mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">${project.projectName}</h3>
+                            <p><strong>Role:</strong> ${project.role}</p>
+                            <p><strong>Skills Used:</strong> ${project.skillsUsed}</p>
+                            <p><strong>Description:</strong> ${project.projectDesc}</p>
+                            <p>
+                                <a href="${project.linkedinProfile}" target="_blank" class="text-blue-500">LinkedIn</a> | 
+                                <a href="${project.githubLink}" target="_blank" class="text-blue-500">GitHub</a> |
+                                <button onclick="deleteProject(${index})" class="text-red-500 hover:text-red-700">Delete</button>
+                            </p>
+                        </div>
+                    `;
+                    projectsContainer.innerHTML += projectCard;
+                });
+            }
+        }
+
+        // Function to delete a project
+        function deleteProject(index) {
+            const projects = JSON.parse(localStorage.getItem('projects')) || [];
+            projects.splice(index, 1); // Remove the project at the given index
+            localStorage.setItem('projects', JSON.stringify(projects)); // Update localStorage
+            displayProjects(); // Refresh the displayed projects
+        }
+    </script>
+</head>
+<body class="h-screen flex flex-col justify-center items-center">
+    <div class="container mx-auto px-4">
+        <h1 class="text-4xl font-bold text-white text-center mb-6">University Projects</h1>
+        <div id="projects-list" class="max-w-md mx-auto"></div>
+        <div class="mt-8 text-center">
+            <a href="project.html" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add New Project</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumni Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Initialize postedJobs array by loading from localStorage
+        let postedJobs = JSON.parse(localStorage.getItem('postedJobs')) || [];
+
+        // Function to generate a unique ID
+        function generateUniqueId() {
+            return 'job-' + Date.now() + '-' + Math.floor(Math.random() * 1000); // Unique ID based on timestamp and random number
+        }
+
+        // Function to post a job
+        function postJob(event) {
+            event.preventDefault();
+            const title = document.getElementById("job-title").value;
+            const alumniName = document.getElementById("alumni-name").value;
+            const skillSelections = document.querySelectorAll(".skill-selection");
+
+            // Create an object to hold selected skills
+            let skills = {};
+            skillSelections.forEach(select => {
+                const skill = select.dataset.skill;
+                const level = select.value;
+                if (level) {
+                    skills[skill] = level; // Only add if a level is selected
+                }
+            });
+
+            // Add job to postedJobs array if fields are filled
+            if (title && alumniName && Object.keys(skills).length > 0) {
+                const uniqueId = generateUniqueId(); // Generate a unique ID for the job
+                postedJobs.push({ id: uniqueId, title, alumniName, skills });
+                localStorage.setItem('postedJobs', JSON.stringify(postedJobs)); // Store the jobs array in localStorage
+                updatePostedJobs(); // Update jobs section with new job
+                document.getElementById("job-form").reset(); // Reset the form once submitted
+                document.getElementById('selected-skills').innerHTML = ''; // Clear selected skills
+            } else {
+                alert("Please fill all fields and select at least one skill level");
+            }
+        }
+
+        // Function to delete a job
+        function deleteJob(index) {
+            postedJobs.splice(index, 1); // Remove the job from the array
+            localStorage.setItem('postedJobs', JSON.stringify(postedJobs)); // Update localStorage
+            updatePostedJobs(); // Update the posted jobs section
+        }
+
+        // Function to update the posted jobs section
+        function updatePostedJobs() {
+            const postedJobsSection = document.getElementById("posted-jobs");
+            postedJobsSection.innerHTML = ""; // Clear current jobs
+
+            // Add each posted job dynamically
+            postedJobs.forEach((job, index) => {
+                const jobElement = `
+                    <div class="mb-4 p-4 border-b transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                        <h3 class="text-xl font-bold">${job.title}</h3>
+                        <p class="text-gray-600">Alumni Name: ${job.alumniName}</p>
+                        <p class="text-gray-600">Skills:</p>
+                        <ul class="list-disc pl-5">
+                            ${Object.entries(job.skills).map(([skill, level]) => `
+                                <li>${skill}: ${level}</li>
+                            `).join('')}
+                        </ul>
+                        <div class="flex items-center">
+                            <button onclick="downloadResults(${index})" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transform hover:scale-105 transition-transform duration-300 ease-in-out mr-2">
+                                Download Results
+                            </button>
+                            <button onclick="deleteJob(${index})" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                postedJobsSection.innerHTML += jobElement;
+            });
+        }
+
+        // Function to download the results as an Excel file
+        function downloadResults(index) {
+            const job = postedJobs[index];
+            const blob = new Blob([JSON.stringify(job, null, 2)], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${job.id}.xls`; // Use unique ID in the file name
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Load jobs from localStorage when page is loaded
+        window.onload = function () {
+            updatePostedJobs(); // Update job list when the page loads
+        };
+
+        // Function to add skill options with dropdowns for levels
+        function addSkillOption() {
+            const skillsDropdown = document.getElementById('skills-dropdown');
+            const selectedSkill = skillsDropdown.value;
+            if (selectedSkill) {
+                const skillDiv = document.createElement('div');
+                skillDiv.className = 'mb-4 flex items-center';
+
+                const skillLabel = document.createElement('label');
+                skillLabel.className = 'block text-gray-700 text-sm font-bold mb-2';
+                skillLabel.innerText = selectedSkill;
+
+                const skillSelect = document.createElement('select');
+                skillSelect.className = 'skill-selection shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                skillSelect.dataset.skill = selectedSkill;
+
+                skillSelect.innerHTML = `
+                    <option value="">Select Level</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Expert">Expert</option>
+                `;
+
+                skillDiv.appendChild(skillLabel);
+                skillDiv.appendChild(skillSelect);
+                document.getElementById('selected-skills').appendChild(skillDiv);
+
+                // Clear the dropdown selection
+                skillsDropdown.value = "";
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Alumni Dashboard</h1>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-center mb-8">
+            <a href="project.html" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4">Add Project</a>
+            <a href="viewproject.html" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Explore Projects</a>
+        </div>
+
+        <!-- Job Posting Form -->
+        <div class="max-w-2xl mx-auto bg-white p-8 shadow-md rounded-lg mb-8">
+            <h2 class="text-2xl font-bold mb-4">Post a Job</h2>
+            <form id="job-form" onsubmit="postJob(event)"> <!-- Onsubmit handler here -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="job-title">Job Title</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="job-title" type="text" placeholder="Enter Job Title" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="alumni-name">Alumni Name</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="alumni-name" type="text" placeholder="Enter Alumni Name" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Select Skills</label>
+                    <select id="skills-dropdown" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="addSkillOption()">
+                        <option value="">Select Skill</option>
+                        <option value="Python">Python</option>
+                        <option value="Java">Java</option>
+                        <option value="C++">C++</option>
+                        <option value="JavaScript">JavaScript</option>
+                        <option value="C#">C#</option>
+                        <option value="PHP">PHP</option>
+                        <option value="Ruby">Ruby</option>
+                        <option value="Swift">Swift</option>
+                        <option value="Go">Go</option>
+                        <option value="Rust">Rust</option>
+                        <option value="Others">Others</option>
+                        <option value="Software Development Experience">Software Development Experience</option>
+                        <option value="Database Management">Database Management</option>
+                        <option value="Networking Skills">Networking Skills</option>
+                        <option value="Web Development Experience">Web Development Experience</option>
+                        <option value="Communication Skills">Communication Skills</option>
+                        <option value="Problem Solving Abilities">Problem Solving Abilities</option>
+                        <option value="Teamwork Collaboration">Teamwork Collaboration</option>
+                        <option value="Time Management">Time Management</option>
+                        <option value="Adaptability">Adaptability</option>
+                    </select>
+                </div>
+                <div id="selected-skills"></div>
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    Post Job
+                </button>
+            </form>
+        </div>
+
+        <!-- Posted Jobs Section -->
+        <div class="max-w-2xl mx-auto bg-white p-8 shadow-md rounded-lg" id="posted-jobs">
+            <h2 class="text-2xl font-bold mb-4">Posted Jobs</h2>
+            <!-- Dynamically added jobs will appear here -->
+        </div>
+    </div>
+</body>
+</html>

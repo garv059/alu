@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Load job postings from localStorage when the page loads
+        window.onload = function () {
+            const postedJobs = JSON.parse(localStorage.getItem('postedJobs')) || [];
+            updatePostedJobs(postedJobs);
+        };
+
+        // Function to update the posted jobs section
+        function updatePostedJobs(postedJobs) {
+            const postedJobsSection = document.getElementById("posted-jobs");
+            postedJobsSection.innerHTML = ""; // Clear current jobs
+
+            // If there are no jobs, display a message
+            if (postedJobs.length === 0) {
+                postedJobsSection.innerHTML = '<p class="text-gray-600">No jobs available at the moment.</p>';
+                return;
+            }
+
+            // Add each posted job dynamically
+            postedJobs.forEach((job, index) => {
+                const jobElement = `
+                    <div class="mb-4 p-4 border-b transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                        <h3 class="text-xl font-bold">${job.title}</h3>
+                        <p class="text-gray-600">Alumni Name: ${job.alumniName}</p>
+                        <p class="text-gray-600">Skills:</p>
+                        <ul class="list-disc pl-5">
+                            ${Object.entries(job.skills).map(([skill, level]) => `
+                                <li>${skill}: ${level}</li>
+                            `).join('')}
+                        </ul>
+                        <div class="flex items-center">
+                            <button onclick="downloadResults(${index})" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transform hover:scale-105 transition-transform duration-300 ease-in-out mr-2">
+                                Download Results
+                            </button>
+                        </div>
+                    </div>
+                `;
+                postedJobsSection.innerHTML += jobElement;
+            });
+        }
+
+        // Function to download the results as an Excel file
+        function downloadResults(index) {
+            const postedJobs = JSON.parse(localStorage.getItem('postedJobs')) || [];
+            const job = postedJobs[index];
+            const blob = new Blob([JSON.stringify(job, null, 2)], { type: 'application/vnd.ms.excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${job.id}.xls`; // Use unique ID in the file name
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Student Dashboard</h1>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-center mb-8">
+            <a href="project.html" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4">Add Project</a>
+            <a href="viewproject.html" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Explore Projects</a>
+        </div>
+
+        <!-- Posted Jobs Section -->
+        <div class="max-w-2xl mx-auto bg-white p-8 shadow-md rounded-lg" id="posted-jobs">
+            <h2 class="text-2xl font-bold mb-4">Posted Jobs</h2>
+            <!-- Dynamically added jobs will appear here -->
+        </div>
+    </div>
+</body>
+</html>

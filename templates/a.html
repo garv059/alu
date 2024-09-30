@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Alumni Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Background gradient */
+        body {
+            background: linear-gradient(135deg, #E0EAFB, #CFDEF3);
+            background-size: cover;
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        /* Custom cursor animation */
+        * {
+            cursor: url('https://cdn.custom-cursor.com/cursor.png'), auto;
+        }
+
+        /* Hover animations for buttons */
+        .btn-animated:hover {
+            background-color: #4F46E5; /* Darker blue on hover */
+            transform: scale(1.05);
+            transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        }
+
+        /* Interactive card hover */
+        .login-card {
+            background: rgba(255, 255, 255, 0.3); /* Semi-transparent background */
+            backdrop-filter: blur(10px); /* Background blur effect */
+            transition: background-color 0.5s ease, transform 0.5s ease;
+        }
+
+        .login-card:hover {
+            background: rgba(255, 255, 255, 0.1); /* More transparent on hover */
+            transform: scale(1.05); /* Slight zoom effect on hover */
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); /* Drop shadow effect */
+        }
+
+        /* Input focus effect */
+        .input-focus {
+            border-color: #9333ea;
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.7);
+        }
+
+        .input-focus:focus {
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        /* Dropdown styling */
+        .select-focus {
+            border-color: #9333ea;
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.7);
+        }
+    </style>
+    <script>
+        // Initialize dynamic data
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let currentUser = null;
+
+        // Function to save form data to localStorage
+        function saveFormData(event) {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const email = document.getElementById("email").value;
+            const role = document.getElementById("role").value;
+
+            // Check if user exists
+            const existingUser = users.find(user => user.username === username);
+
+            // If user does not exist, register them
+            if (!existingUser) {
+                users.push({ username, password, email, role });
+                localStorage.setItem('users', JSON.stringify(users));
+                alert("Registration successful! You can now log in.");
+            } else {
+                // If user exists, check password
+                if (existingUser.password === password) {
+                    currentUser = existingUser;
+                    alert(`Welcome, ${username}!`);
+                    // Redirect based on the role
+                    if (existingUser.role === "Alumni") {
+                        window.location.href = "alumnipage.html"; // Redirect to alumni page
+                    } else if (existingUser.role === "Student") {
+                        window.location.href = "studentpage.html"; // Redirect to student page
+                    }
+                } else {
+                    alert("Incorrect password. Please try again.");
+                }
+            }
+        }
+
+        // Function to auto-populate form fields on load
+        function loadFormData() {
+            const savedFormData = JSON.parse(localStorage.getItem('formData')) || {};
+            if (savedFormData.username) {
+                document.getElementById("username").value = savedFormData.username;
+            }
+            if (savedFormData.password) {
+                document.getElementById("password").value = savedFormData.password;
+            }
+            if (savedFormData.role) {
+                document.getElementById("role").value = savedFormData.role;
+            }
+            if (savedFormData.email) {
+                document.getElementById("email").value = savedFormData.email;
+            }
+        }
+
+        // Clear form data from localStorage
+        function clearFormData() {
+            localStorage.removeItem('formData');
+            document.getElementById("login-form").reset();
+            alert("Form data cleared!");
+        }
+
+        window.onload = function () {
+            loadFormData(); // Auto-populate form data when page loads
+        };
+    </script>
+</head>
+<body>
+    <!-- Login Form -->
+    <div class="login-card bg-white p-10 rounded-lg shadow-lg w-96 transform transition-all duration-500 ease-in-out">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-700">Login</h1>
+        <form id="login-form" onsubmit="saveFormData(event)">
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="role">Select Role</label>
+                <select id="role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline select-focus">
+                    <option value="" disabled selected>Select your role</option>
+                    <option value="Student">Student</option>
+                    <option value="Alumni">Alumni</option>
+                </select>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline input-focus" id="username" type="text" placeholder="Enter Username" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline input-focus" id="password" type="password" placeholder="Enter Password" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline input-focus" id="email" type="email" placeholder="Enter Email" required>
+            </div>
+            <div class="flex items-center justify-between">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline btn-animated" type="submit">
+                    Login / Register
+                </button>
+                <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-700 cursor-pointer" onclick="clearFormData()">
+                    Clear Data
+                </a>
+            </div>
+            <div class="mt-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" class="form-checkbox text-indigo-600">
+                    <span class="ml-2">Remember me</span>
+                </label>
+                <a href="#" class="text-sm text-gray-500 float-right">Forgot password?</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
